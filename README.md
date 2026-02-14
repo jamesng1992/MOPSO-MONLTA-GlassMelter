@@ -1,8 +1,8 @@
 # Multi-Objective Optimization for Glass Melter Control: MOPSO, NTA & MONLTA
 
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![NumPy](https://img.shields.io/badge/NumPy-%E2%89%A51.21-orange.svg)](https://numpy.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-%E2%89%A51.24-orange.svg)](https://numpy.org/)
 
 ## Overview
 
@@ -45,66 +45,114 @@ Additional performance metrics computed: ISE, ITSE, ITAE, rise time, peak time, 
 ## Repository Structure
 
 ```
-├── MultiObjective_Optimization_PSO_NTA.ipynb      # Core algorithms & PID tuning
-├── MOPSO_MONLTA_Applications_GlassMelter.ipynb     # Five advanced applications
-├── README.md
+MOPSO-MONLTA-GlassMelter/
+├── mopso_monlta/                   # Installable Python package
+│   ├── __init__.py
+│   ├── config.py                   # Physical parameters & defaults
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── glass_melter.py         # 2-state & 7-state ODE models
+│   │   └── pid.py                  # PID controller with anti-windup
+│   ├── optimizers/
+│   │   ├── __init__.py
+│   │   ├── mopso.py                # MOPSO (Coello et al. 2004)
+│   │   ├── monlta.py               # MONLTA (Nahas et al. 2021)
+│   │   └── nta_weighted.py         # NTA with weighted-sum scalarization
+│   ├── evaluation/
+│   │   ├── __init__.py
+│   │   ├── objectives.py           # Closed-loop simulation & metrics
+│   │   ├── pareto.py               # Dominance, crowding distance
+│   │   └── decision.py             # TOPSIS & compromise selection
+│   └── visualization/
+│       ├── __init__.py
+│       ├── style.py                # Publication-quality plot settings
+│       └── plots.py                # Pareto, convergence & response plots
+├── notebooks/
+│   ├── 01_pid_tuning.ipynb         # Core PID tuning comparison
+│   └── 02_advanced_applications.ipynb  # 5 extended applications
+├── scripts/
+│   └── run_pid_optimization.py     # CLI script for quick runs
+├── docs/figures/                   # Generated figures
+├── pyproject.toml
+├── requirements.txt
 ├── LICENSE
-└── .gitignore
+└── README.md
 ```
 
-## Notebooks
-
-### 1. `MultiObjective_Optimization_PSO_NTA.ipynb` — Core Framework
-
-This notebook develops the complete multi-objective optimization framework:
-
-- **Glass melter dynamics** — Second-order level model with PID controller and anti-windup
-- **MOPSO** — Particle Swarm Optimization with external Pareto archive, crowding distance-based leader selection, and polynomial mutation
-- **NTA** — Weighted-sum scalarization approach with nonlinear threshold accepting
-- **MONLTA** — True Pareto-based optimization with the 4-scenario acceptance criterion from Nahas et al. (2021)
-- **Visualization** — 2D/3D Pareto fronts, convergence curves, closed-loop step responses
-- **TOPSIS** — Technique for Order of Preference by Similarity to Ideal Solution for systematic solution selection
-
-#### Key MONLTA Features (from the paper)
-
-- **Nonlinear Accepting Function**: $H(\zeta) = 1/\sqrt{1+(\zeta/\zeta_0)^2}$ — a low-pass-filter form providing controlled exploration-to-exploitation transition
-- **Four Acceptance Scenarios**: Dominance-based acceptance with an amount-of-domination principle
-- **Variable-Size Archive**: Non-dominated solutions stored and updated using dominance rules
-- **Focused Perturbation**: One decision variable perturbed at a time for targeted neighborhood search
-
-### 2. `MOPSO_MONLTA_Applications_GlassMelter.ipynb` — Advanced Applications
-
-This notebook applies the MOPSO/MONLTA framework to five glass melter control challenges using a 7-state ODE model:
-
-| # | Application | Decision Variables | Objectives |
-|---|-------------|-------------------|------------|
-| 1 | **Neural ODE Hyperparameter Optimization** | hidden_dim, n_layers, lr, correction_scale | Validation RMSE, Parameter count, Training time |
-| 2 | **Observer Gain Tuning** | $L_1, \ldots, L_7$ (Luenberger gains) | Convergence speed, Noise sensitivity, Robustness |
-| 3 | **MPC Weight Selection** | $Q_{1..7}$, $R$, $N_p$ | Tracking error, Control effort, Constraint violations |
-| 4 | **FOPID Controller Design** | $K_p, K_i, K_d, \lambda, \mu$ | ITSE, Overshoot, Settling time |
-| 5 | **Simultaneous Multi-Zone Tuning** | PID gains for $n$ zones | Per-zone IAE, Cross-coupling, Total energy |
-
-## Requirements
-
-- Python ≥ 3.8
-- NumPy
-- Matplotlib
-- SciPy
-
-Install dependencies:
-
-```bash
-pip install numpy matplotlib scipy
-```
-
-## Quick Start
+## Installation
 
 ```bash
 git clone https://github.com/jamesng1992/MOPSO-MONLTA-GlassMelter.git
 cd MOPSO-MONLTA-GlassMelter
-pip install numpy matplotlib scipy
-jupyter notebook MultiObjective_Optimization_PSO_NTA.ipynb
+pip install -e .
 ```
+
+Or install dependencies only:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Quick Start
+
+### Run from command line
+
+```bash
+python scripts/run_pid_optimization.py
+python scripts/run_pid_optimization.py --n-particles 40 --n-iterations 80
+```
+
+### Use in notebooks
+
+```bash
+cd notebooks
+jupyter notebook 01_pid_tuning.ipynb
+```
+
+### Use as a library
+
+```python
+from mopso_monlta.optimizers import MOPSO, MONLTA
+from mopso_monlta.evaluation import evaluate_pid_objectives, select_best_compromise
+
+mopso = MOPSO(evaluate_pid_objectives, bounds=[(0.1,20),(0.001,5),(0,10)],
+              n_particles=30, n_objectives=3)
+mopso.optimize(n_iterations=60)
+
+best_gains, best_obj = select_best_compromise(
+    mopso.archive_positions, mopso.archive_objectives
+)
+```
+
+## Notebooks
+
+### 1. `01_pid_tuning.ipynb` — Core PID Tuning Comparison
+
+Runs MOPSO, NTA, and MONLTA on the glass melter level control problem:
+- Open-loop baseline response
+- Pareto front visualization (2D & 3D)
+- TOPSIS-based best compromise selection
+- Closed-loop step response comparison
+- Convergence analysis and MONLTA diagnostics
+
+### 2. `02_advanced_applications.ipynb` — Extended Applications
+
+Applies the framework to five additional glass melter control challenges:
+
+| # | Application | Decision Variables | Objectives |
+|---|-------------|-------------------|------------|
+| 1 | **Neural ODE Hyperparameter Optimization** | learning rate, hidden size, epochs | Val. MSE, Training Time, Complexity |
+| 2 | **Observer Gain Tuning** | $L_1, \ldots, L_4$ (Luenberger gains) | Est. Error, Noise Sensitivity, Settling |
+| 3 | **MPC Weight Selection** | $Q$, $R$, $N$ | Tracking Error, Control Effort, Constraint Violation |
+| 4 | **FOPID Controller Design** | $K_p, K_i, K_d, \lambda, \mu$ | IAE, Overshoot, Settling Time |
+| 5 | **Multi-Zone Temperature PID** | 3×$(K_p, K_i, K_d)$ = 9 vars | Zone 1/2/3 IAE |
+
+## Key MONLTA Features
+
+- **Nonlinear Accepting Function**: $H(\zeta) = 1/\sqrt{1+(\zeta/\zeta_0)^2}$ — low-pass-filter form for controlled exploration-to-exploitation transition
+- **Four Acceptance Scenarios**: Dominance-based acceptance with amount-of-domination principle
+- **Variable-Size Archive**: Non-dominated solutions stored and updated using dominance rules
+- **Focused Perturbation**: One decision variable perturbed at a time for targeted neighborhood search
 
 ## Key References
 
