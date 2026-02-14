@@ -38,7 +38,7 @@ where $u(t)$ is the batch charging rate (control input) and $q_p(t)$ is the prod
 
 The decision variables are the PID gains $(K_p, K_i, K_d)$, and the objectives (all minimized) are:
 
-$$\min_{K_p, K_i, K_d} \mathbf{f}(\mathbf{x}) = [\text{IAE (Integral Absolute Error)}, \\ \text{Overshoot (\text{(\%)}}, \\ \text{Settling Time (h)}]$$
+$$\min_{K_p, K_i, K_d} \mathbf{f}(\mathbf{x}) = [\text{IAE (Integral Absolute Error)}, \\ \text{Overshoot (\%%)}, \\ \text{Settling Time (h)}]$$
 
 Additional performance metrics computed: ISE, ITSE, ITAE, rise time, peak time, 2%- and 5%-band settling times.
 
