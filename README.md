@@ -145,7 +145,7 @@ Applies the framework to five additional glass melter control challenges:
 | 2 | **Observer Gain Tuning** | $L_1, \ldots, L_4$ (Luenberger gains) | Est. Error, Noise Sensitivity, Settling |
 | 3 | **MPC Weight Selection** | $Q$, $R$, $N$ | Tracking Error, Control Effort, Constraint Violation |
 | 4 | **FOPID Controller Design** | $K_p, K_i, K_d, \lambda, \mu$ | IAE, Overshoot, Settling Time |
-| 5 | **Multi-Zone Temperature PID** | 3x$$\left( K_p, K_i, K_d \right)$$ = 9 vars | Zone 1/2/3 IAE |
+| 5 | **Multi-Zone Temperature PID** | 3x$( K_p, K_i, K_d)$ = 9 vars | Zone 1/2/3 IAE |
 
 ## Key MONLTA Features
 
